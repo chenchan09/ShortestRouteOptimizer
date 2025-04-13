@@ -36,13 +36,3 @@ Or please migrate my folder to mvc 5
 
 
 Thanks!
-<ul>
-  <li>Item 1</li>
-  <li>Item 2
-    <ul>
-      <li>Subitem 2.1</li>
-      <li>Subitem 2.2</li>
-    </ul>
-  </li>
-  <li>Item 3</li>
-</ul>
