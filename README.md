@@ -19,7 +19,7 @@ Or please migrate my folder to mvc 5
       <li>Interface/</li>
       <li>Views/ 
         <ul>
-          <li></li>ShortestRouteOptimizer/</ul>
+          <li>ShortestRouteOptimizer/</li>
         </ul>
       </li>
    </ul>     
