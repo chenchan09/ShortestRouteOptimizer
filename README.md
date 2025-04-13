@@ -11,15 +11,15 @@ Or please migrate my folder to mvc 5
 <ul>
  
   <li>
-    ShortestRouteOptimizer
+    ShortestRouteOptimizer/
    <ul>
-      <li>Busines</li>
-      <li>Controller</li>
-      <li>Data</li>
-      <li>Interface</li>
-      <li>Views 
+      <li>Busines/</li>
+      <li>Controller/</li>
+      <li>Data/</li>
+      <li>Interface/</li>
+      <li>Views/ 
         <ul>
-          ShortestRouteOptimizer
+          ShortestRouteOptimizer/
         </ul>
       </li>
    </ul>     
@@ -27,7 +27,7 @@ Or please migrate my folder to mvc 5
       
    </li>
      <li>
-      UnitTesting
+      UnitTesting/
         <ul><li>Test1.cs</li></ul>
      </li>
 </ul>
