@@ -1,0 +1,351 @@
+﻿@using ShortestRouteOptimizer.Data
+@using ShortestRouteOptimizer.Business
+@model ShortestPathData
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "View";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+    var from = @ViewData["from"] == null ? "" : @ViewData["from"] as string;
+    var to = @ViewData["to"] as string;
+    var shortPathData = Model;
+}
+
+
+
+
+<style>
+    svg {
+    background-color: silver;
+    width: 100%;
+    height: 500px;
+    border-radius:5px;
+    }
+    .node {
+    fill: #3b82f6;
+    stroke: #fff;
+    stroke-width: 2;
+    cursor:pointer;
+    }
+
+    .node.path {
+    fill: yellow;
+
+    }
+
+    .node.vertices {
+    fill: red !important;
+    }
+    .label {
+    fill: white;
+    font-size: 14px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    cursor: pointer;
+    }
+
+    .label.path{
+    fill: black;
+    }
+    .arrow {
+    stroke: #3b82f6;
+    stroke-width: 2;
+    marker-end: url(#arrowhead-end);  
+    }
+    .arrowpath {
+    stroke: yellow;
+    stroke-width: 2;
+    marker-end: url(#arrowhead-path);  
+    }
+
+    .biarrow {
+    stroke: #3b82f6;
+    stroke-width: 2;
+    marker-start: url(#arrowhead-start);
+    marker-end: url(#arrowhead-end);
+    }
+
+    .arrow.path {
+    stroke: yellow;
+    }
+    .arrow-highlight {
+    stroke: orange;
+    stroke-width: 2;
+    marker-end: url(#arrowhead);
+    }
+    .weight {
+    font-size: 12px;
+    fill: black;
+    }
+</style>
+
+
+@using (Html.BeginForm("Index", "ShortestRouteOptimizer", FormMethod.Post))
+{
+
+
+    if(@shortPathData.ErrorMessage != "" && (from != "" || to !=""))
+    {
+        <span class="alert-danger">@shortPathData.ErrorMessage</span>
+    }
+    <div class="flex-wrap mb-5">
+        <div class="row">
+            <div class="col-4">
+                <label>
+                    From
+                </label>
+                <input type="text" name="from" class="form-control" placeholder="Enter Node" pattern="[A-Z]" maxlength="1" oninput="this.value = this.value.toUpperCase();" value="@from"  required/>
+
+            </div>
+            <div class="col-4">
+                <label>To</label>
+                <input type="text" name="to" class="form-control" placeholder="Enter Node" pattern="[A-Z]" maxlength="1" oninput="this.value = this.value.toUpperCase();" value="@to" required/>
+
+            </div>
+
+            <div class="col-4 mt-4">
+                <button type="submit" class="btn btn-primary form-control">Run</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <label>
+                    From Node:
+                </label>
+                <span>@from</span>
+            </div>
+            <div class="col-4"> 
+                <label>
+                    To Node:
+                </label>
+                <span>@to: @string.Join(',', @shortPathData.NodeNames)</span>
+            </div>
+            <div class="col-4">
+                <label>
+                    Distance:
+                </label>
+                <span> @shortPathData.Distance</span>
+            </div>
+        </div>
+    </div>
+}
+<svg id="vBox" viewBox="0 0 900 400">
+    <!-- Arrowhead Definition -->  
+    <defs>
+        <!-- Arrow pointing right (used for marker-end) -->
+        <marker id="arrowhead-end" markerWidth="10" markerHeight="7"
+        refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+        </marker>
+
+        <!-- Arrow pointing left (used for marker-start) -->
+        <marker id="arrowhead-start" markerWidth="10" markerHeight="7"
+        refX="0" refY="3.5" orient="auto">
+            <polygon points="10 0, 0 3.5, 10 7" fill="#3b82f6" />
+        </marker>
+        <marker id="arrowhead-path" markerWidth="10" markerHeight="7"
+        refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="yellow" />
+        </marker>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                         refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="orange" />
+        </marker>
+    </defs>
+    @* 
+    <!-- Edges with weights -->
+    <!-- A -> B -->
+    <line x1="100" y1="150" x2="200" y2="100" class="arrow" />
+    <text x="145" y="130" class="weight">4</text>
+
+    <!-- A -> C -->
+    <line x1="100" y1="150" x2="200" y2="250" class="arrow" />
+    <text x="145" y="210" class="weight">6</text>
+
+    <!-- B -> F -->
+    <line x1="200" y1="100" x2="300" y2="100" class="arrow" />
+    <text x="250" y="90" class="weight">2</text>
+
+    <!-- B -> E -->
+    <line x1="200" y1="100" x2="300" y2="150" class="arrow-highlight" />
+    <text x="245" y="130" class="weight">2</text>
+
+    <!-- C -> D -->
+    <line x1="200" y1="250" x2="300" y2="250" class="arrow" />
+    <text x="250" y="240" class="weight">8</text>
+
+    <!-- D -> G -->
+    <line x1="300" y1="250" x2="400" y2="200" class="arrow" />
+    <text x="350" y="235" class="weight">1</text>
+
+    <!-- E -> D -->
+    <line x1="300" y1="150" x2="300" y2="250" class="arrow" />
+    <text x="290" y="200" class="weight">4</text>
+
+    <!-- E -> F -->
+    <line x1="300" y1="150" x2="300" y2="100" class="arrow" />
+    <text x="310" y="120" class="weight">3</text>
+
+    <!-- E -> I -->
+    <line x1="300" y1="150" x2="600" y2="150" class="arrow" />
+    <text x="450" y="140" class="weight">8</text>
+
+    <!-- F -> H -->
+    <line x1="300" y1="100" x2="400" y2="50" class="arrow" />
+    <text x="345" y="75" class="weight">6</text>
+
+    <!-- F -> G -->
+    <line x1="300" y1="100" x2="400" y2="200" class="arrow" />
+    <text x="345" y="150" class="weight">4</text>
+
+    <!-- G -> I -->
+    <line x1="400" y1="200" x2="600" y2="150" class="arrow" />
+    <text x="500" y="180" class="weight">5</text>
+
+    <!-- H -> G -->
+    <line x1="400" y1="50" x2="400" y2="200" class="arrow" />
+    <text x="410" y="125" class="weight">5</text> *@
+
+    <!-- Nodes -->
+    @{
+        var nodes = ViewData["Nodes"] as List<Node>;
+        var keyValues = new List<Dictionary<string, dynamic>>();
+        var letters = nodes.Select(a => a.to).ToList();
+        letters.AddRange(nodes.Select(a => a.from).ToList());
+        letters = letters.Distinct().Order().ToList();
+        int lettersCount = letters.Count;
+        @* int xlimit = 700;
+        int ylimit = 400;
+        int xdiv = xlimit / letters.Count();
+        int ydiv = ylimit / letters.Count();
+        int incx = 90;
+        int incy = 20;
+        int max = incx;
+        int xreset = incx; *@
+        var vertexlist = VertexHelper.GenerateNonOverlappingVertices(letters.Count, 650, 400, 100);
+        for (var i = 0; i < lettersCount; i++)
+        {
+            
+            keyValues.Add(new Dictionary<string, dynamic>
+            {
+                { "x", vertexlist[i].X },
+                { "y", vertexlist[i].Y  },
+                { "l", letters[i]}
+            });
+            @* incy = new Random().Next(incy + 90, incy+ 120);
+            incx = new Random().Next(max, max + 40); ;
+            if (incx > max) max = incx;
+            if (incy > ylimit){
+                //incx = max;
+                incy = new Random().Next(5, 30);
+                //xreset = incx + 10;
+                incx = new Random().Next(incx+ 40, incx + 80);
+                if (incx > max) max = incx;
+                if (incx > xlimit){
+                    incx = new Random().Next(max+ 10, max + 40); ;
+                }
+            }  *@
+            
+        }
+
+        foreach (var node in nodes)
+        {
+
+            var nodeFrom = keyValues.Where(a => a["l"] == node.from).First();
+            var nodeTo = keyValues.Where(a => a["l"] == node.to).First();
+
+            var x1 = nodeFrom["x"];
+            var y1 = nodeFrom["y"];
+            var x2 = nodeTo["x"];
+            var y2 = nodeTo["y"];
+            (Point A, Point B) res = GeometryHelper.ShortenTowardCenter(x1, y1, x2, y2, -20);
+            string arrowClass = node.bidirectinal ? "biarrow" : "arrow-highlight";
+            <line x1 = "@res.A.X" y1 = "@res.A.Y" x2 = "@res.B.X" y2 = "@res.B.Y" class="@arrowClass" />
+           
+            @Html.Raw("<text x='" + (@nodeFrom["x"] + @nodeTo["x"]) / 2 + "' y='" + (@nodeFrom["y"] + @nodeTo["y"]) / 2 + "' class='weight " +  "'>" + @node.distance + "</text>")
+            
+        }
+
+    
+        
+     
+         foreach (var keyValue in keyValues)
+        {
+            @from
+            ;
+            var s = keyValue["l"] == to ? "true" : "false";
+            var s2 = keyValue["l"] == from ? "true" : "false";
+            @s@s2
+            var verticesClass = keyValue["l"] == to ? "vertices" : (keyValue["l"] == from ? "vertices" : "");
+            var pathClass = shortPathData.NodeNames.Contains(keyValue["l"]) ? "path " : "";
+            <circle cx="@keyValue["x"]" cy="@keyValue["y"]" r="20" class="node @pathClass @verticesClass" />
+            @Html.Raw("<text x='" + keyValue["x"] + "' y='" + keyValue["y"] + "' class='label " + pathClass + " " + verticesClass + "'>" + keyValue["l"] + "</text>")
+            ;
+            
+        }
+        for (var i = 0; i < shortPathData.NodeNames.Count() - 1; i++)
+        {
+
+            var nodeFrom = keyValues.Where(a => a["l"] == shortPathData.NodeNames[i]).First();
+            var nodeTo = keyValues.Where(a => a["l"] == shortPathData.NodeNames[i + 1]).First();
+            var x1 = nodeFrom["x"];
+            var y1 = nodeFrom["y"];
+            var x2 = nodeTo["x"];
+            var y2 = nodeTo["y"];
+            (Point A, Point B) res = GeometryHelper.ShortenTowardCenter(x1, y1, x2, y2, -20);
+
+            <line x1="@res.A.X" y1="@res.A.Y" x2="@res.B.X" y2="@res.B.Y" class="arrowpath path" />
+
+
+        }
+     }
+        @* <circle cx="100" cy="150" r="10" class="node" />
+        <text x="100" y="150" class="label">A</text>
+
+        <circle cx="200" cy="100" r="10" class="node" />
+        <text x="200" y="100" class="label">B</text>
+
+        <circle cx="200" cy="250" r="10" class="node" />
+        <text x="200" y="250" class="label">C</text>
+
+        <circle cx="300" cy="250" r="10" class="node" />
+        <text x="300" y="250" class="label">D</text>
+
+        <circle cx="300" cy="150" r="10" class="node" />
+        <text x="300" y="150" class="label">E</text>
+
+        <circle cx="300" cy="100" r="10" class="node" />
+        <text x="300" y="100" class="label">F</text>
+
+        <circle cx="400" cy="200" r="10" class="node" />
+        <text x="400" y="200" class="label">G</text>
+
+        <circle cx="400" cy="50" r="10" class="node" />
+        <text x="400" y="50" class="label">H</text>
+
+        <circle cx="600" cy="150" r="10" class="node" />
+        <text x="600" y="150" class="label">I</text> *@
+    </svg>
+
+@section Scripts {
+    <script>
+        $(function(){
+            var box = $('#vBox');
+
+            // $.ajax({
+            //     url: '/ShortestRouteOptimizer/Index',
+            //     type: 'POST',
+            //     data: { /* Your data here },
+            //     success: function(response) {
+            //         // Handle the response from the server
+            //         console.log(response);
+            //     },
+            //     error: function(xhr, status, error) {
+            //         // Handle any errors
+            //         console.error(error);
+            //     }
+            // })
+        });
+    </script>
+}
